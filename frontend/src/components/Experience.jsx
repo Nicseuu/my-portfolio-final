@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Briefcase, ChevronRight } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useContent } from '@/context/ContentContext';
@@ -10,9 +10,12 @@ const Experience = () => {
   const [activeExperience, setActiveExperience] = useState(0);
   const { isDark } = useTheme();
   const sectionRef = useRef(null);
-  const experience = useContent('experience') || [];
-  const skills = useContent('skills') || [];
-  const tools = useContent('tools') || [];
+  const rawExperience = useContent('experience');
+  const rawSkills = useContent('skills');
+  const rawTools = useContent('tools');
+  const experience = useMemo(() => rawExperience || [], [rawExperience]);
+  const skills = useMemo(() => rawSkills || [], [rawSkills]);
+  const tools = useMemo(() => rawTools || [], [rawTools]);
   const [animatedSkills, setAnimatedSkills] = useState(skills.map(() => 0));
 
   // Theme-aware colors
@@ -52,7 +55,7 @@ const Experience = () => {
     }
 
     return () => observer.disconnect();
-  }, []);
+  }, [skills]);
 
   return (
     <section

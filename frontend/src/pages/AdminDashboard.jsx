@@ -814,14 +814,18 @@ const ChatView = () => {
   const [adminReply, setAdminReply] = useState('');
   const chatEndRef = useRef(null);
 
-  const refresh = () => {
+  const selectedConvoRef = useRef(selectedConvo);
+  selectedConvoRef.current = selectedConvo;
+
+  const refresh = useCallback(() => {
     const data = getChatConversations();
     setConversations(data);
-    if (selectedConvo) {
-      const updated = data.find(c => c.id === selectedConvo.id);
+    const current = selectedConvoRef.current;
+    if (current) {
+      const updated = data.find(c => c.id === current.id);
       if (updated) setSelectedConvo(updated);
     }
-  };
+  }, []);
 
   useEffect(() => {
     const handler = () => refresh();
@@ -829,7 +833,7 @@ const ChatView = () => {
     window.addEventListener('chat-updated', handler);
     const interval = setInterval(refresh, 3000);
     return () => { window.removeEventListener('storage', handler); window.removeEventListener('chat-updated', handler); clearInterval(interval); };
-  }, [selectedConvo?.id]);
+  }, [refresh]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
