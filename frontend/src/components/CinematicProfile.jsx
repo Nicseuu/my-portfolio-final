@@ -87,8 +87,10 @@ const CinematicProfile = ({ profileImages, className = '' }) => {
     setVideoError(prev => ({ ...prev, [dir]: true }));
   }, []);
 
-  // Pick the right fallback image
-  const fallbackSrc = profileImages?.dark || profileImages?.light || profileImages?.main || '/profile.jpg';
+  // Pick the right fallback image — handle both array and object formats
+  const fallbackSrc = Array.isArray(profileImages)
+    ? (profileImages[0] || '/profile.jpg')
+    : (profileImages?.dark || profileImages?.light || profileImages?.main || '/profile.jpg');
 
   return (
     <div className={`relative overflow-hidden ${className}`}>
