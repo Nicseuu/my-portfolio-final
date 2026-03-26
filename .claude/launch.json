@@ -1,0 +1,14 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "portfolio",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["start"],
+      "port": 3002,
+      "autoPort": false,
+      "cwd": "frontend",
+      "env": { "PORT": "3002", "BROWSER": "none" }
+    }
+  ]
+}

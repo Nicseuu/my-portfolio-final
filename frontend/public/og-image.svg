@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <rect width="1200" height="630" fill="#1a1c1b"/>
+  <rect x="40" y="40" width="1120" height="550" rx="20" fill="#1a1c1b" stroke="#3f4816" stroke-width="2"/>
+  <text x="600" y="240" font-family="Inter, system-ui, sans-serif" font-size="72" font-weight="900" fill="#ffffff" text-anchor="middle">Janica</text>
+  <text x="600" y="320" font-family="Inter, system-ui, sans-serif" font-size="72" font-weight="900" fill="#d9fb06" text-anchor="middle">Cabidoy</text>
+  <text x="600" y="400" font-family="Inter, system-ui, sans-serif" font-size="32" font-weight="500" fill="#888680" text-anchor="middle">Community Manager | AI Automation | Web3</text>
+  <text x="600" y="460" font-family="Inter, system-ui, sans-serif" font-size="24" font-weight="600" fill="#d9fb06" text-anchor="middle">163% Community Growth | 95K+ Members Managed</text>
+  <rect x="250" y="510" width="700" height="4" rx="2" fill="#3f4816"/>
+  <text x="600" y="560" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="400" fill="#6b6964" text-anchor="middle">jcabidoy.xyz</text>
+</svg>

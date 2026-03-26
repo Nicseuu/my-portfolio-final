@@ -1,0 +1,65 @@
+.App-logo {
+    height: 40vmin;
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .App-logo {
+        animation: App-logo-spin infinite 20s linear;
+    }
+}
+
+@keyframes App-logo-spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Theme Variables - Dark Theme (default) */
+:root,
+[data-theme="dark"] {
+    --bg-primary: #1a1c1b;
+    --bg-secondary: #302f2c;
+    --bg-tertiary: #3f4816;
+    --text-primary: #ffffff;
+    --text-secondary: #888680;
+    --accent: #d9fb06;
+    --border: #3f4816;
+}
+
+/* Light Theme */
+[data-theme="light"] {
+    --bg-primary: #f5f4f0;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #4a6d00;
+    --text-primary: #1a1c1b;
+    --text-secondary: #6b6964;
+    --accent: #4a6d00;
+    --border: #d4d2ca;
+}
+
+/* Apply theme bg globally */
+[data-theme="light"] body {
+    background-color: #f5f4f0;
+}
+[data-theme="dark"] body {
+    background-color: #1a1c1b;
+}
