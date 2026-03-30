@@ -9,7 +9,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { toast, Toaster } from 'sonner';
 
 const MESSAGES_KEY = 'portfolio-messages';
-const DEFAULT_WEB3FORMS_KEY = '1161ad79-7e07-4f2f-bb52-5c29cc74f945';
+const DEFAULT_WEB3FORMS_KEY = process.env.REACT_APP_WEB3FORMS_KEY || '';
 
 const Availability = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -68,8 +68,25 @@ const Availability = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Rate limit: max 3 submissions per 10 minutes
+  const checkRateLimit = () => {
+    const key = 'contact-form-submissions';
+    const now = Date.now();
+    const window = 10 * 60 * 1000; // 10 minutes
+    const submissions = JSON.parse(localStorage.getItem(key) || '[]').filter(ts => now - ts < window);
+    if (submissions.length >= 3) return false;
+    submissions.push(now);
+    localStorage.setItem(key, JSON.stringify(submissions));
+    return true;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!checkRateLimit()) {
+      toast.error('Too many messages sent. Please wait a few minutes before trying again.');
+      return;
+    }
 
     if (!selectedDate) {
       toast.error('Please select a preferred date in Step 1 before sending your message.');
@@ -97,23 +114,40 @@ const Availability = () => {
       existing.unshift(newMessage);
       localStorage.setItem(MESSAGES_KEY, JSON.stringify(existing));
 
+      // Try server-side API first (keeps Web3Forms key hidden), fall back to client-side
       try {
-        const web3formsKey = localStorage.getItem('web3forms-key') || DEFAULT_WEB3FORMS_KEY;
-        if (web3formsKey) {
-          await fetch('https://api.web3forms.com/submit', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              access_key: web3formsKey,
-              subject: `New Contact from ${formData.name}`,
-              from_name: formData.name,
-              email: formData.email,
-              message: `Project: ${formData.project || 'Not specified'}\nPreferred Date: ${selectedDate ? selectedDate.toLocaleDateString() : 'Not selected'}\n\n${formData.message}`,
-            }),
-          });
+        const serverRes = await fetch('/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: formData.name,
+            email: formData.email,
+            message: formData.message,
+            project: formData.project || null,
+            preferredDate: selectedDate ? selectedDate.toLocaleDateString() : null,
+          }),
+        });
+        if (!serverRes.ok) throw new Error('Server API unavailable');
+      } catch {
+        // Fallback: direct Web3Forms call (for local dev or non-Vercel deployments)
+        try {
+          const web3formsKey = localStorage.getItem('web3forms-key') || DEFAULT_WEB3FORMS_KEY;
+          if (web3formsKey) {
+            await fetch('https://api.web3forms.com/submit', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                access_key: web3formsKey,
+                subject: `New Contact from ${formData.name}`,
+                from_name: formData.name,
+                email: formData.email,
+                message: `Project: ${formData.project || 'Not specified'}\nPreferred Date: ${selectedDate ? selectedDate.toLocaleDateString() : 'Not selected'}\n\n${formData.message}`,
+              }),
+            });
+          }
+        } catch (emailErr) {
+          console.error('Email notification failed:', emailErr);
         }
-      } catch (emailErr) {
-        console.error('Email notification failed:', emailErr);
       }
 
       toast.success("Message sent! Thanks for reaching out. I'll get back to you within 24 hours.");

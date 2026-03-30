@@ -7,12 +7,14 @@ import {
 } from '@/components/ui/accordion';
 import { useContent } from '@/context/ContentContext';
 import { useTheme } from '@/context/ThemeContext';
+import DOMPurify from 'dompurify';
 
 const FAQ = () => {
   const [isVisible, setIsVisible] = useState(false);
   const { isDark } = useTheme();
   const sectionRef = useRef(null);
   const faqData = useContent('faqData') || [];
+  const personalInfo = useContent('personalInfo');
 
   // Theme-aware colors
   const accent = isDark ? '#d9fb06' : '#4a6d00';
@@ -43,8 +45,9 @@ const FAQ = () => {
     return () => observer.disconnect();
   }, []);
 
-  // Function to render markdown-like text with bold
+  // Function to render markdown-like text with bold (sanitized against XSS)
   const renderAnswer = (text) => {
+    text = DOMPurify.sanitize(text, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
     const parts = text.split(/\*\*(.*?)\*\*/g);
     return parts.map((part, index) => {
       if (index % 2 === 1) {
@@ -91,15 +94,15 @@ const FAQ = () => {
               <ul className="space-y-3">
                 <li className={`flex items-center gap-3 ${textMuted}`}>
                   <span className={`w-2 h-2 ${accentBg} rounded-full`} />
-                  Base Rate: <span className={`${accentText} font-bold`}>1,200 USDT/month</span>
+                  Base Rate: <span className={`${accentText} font-bold`}>{personalInfo?.baseRate || '1,200 USDT/month'}</span>
                 </li>
                 <li className={`flex items-center gap-3 ${textMuted}`}>
                   <span className={`w-2 h-2 ${accentBg} rounded-full`} />
-                  Response Time: <span className={`${textMain} font-semibold`}>Within 24 hours</span>
+                  Response Time: <span className={`${textMain} font-semibold`}>{personalInfo?.availability?.responseTime || 'Within 24 hours'}</span>
                 </li>
                 <li className={`flex items-center gap-3 ${textMuted}`}>
                   <span className={`w-2 h-2 ${accentBg} rounded-full`} />
-                  Availability: <span className={`${textMain} font-semibold`}>Currently Available</span>
+                  Availability: <span className={`${textMain} font-semibold`}>{personalInfo?.availability?.status || 'Currently Available'}</span>
                 </li>
               </ul>
             </div>

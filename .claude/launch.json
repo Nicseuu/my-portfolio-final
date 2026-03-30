@@ -3,12 +3,12 @@
   "configurations": [
     {
       "name": "portfolio",
-      "runtimeExecutable": "npm",
+      "runtimeExecutable": "/usr/local/bin/npm",
       "runtimeArgs": ["start"],
       "port": 3002,
       "autoPort": false,
       "cwd": "frontend",
-      "env": { "PORT": "3002", "BROWSER": "none" }
+      "env": { "PORT": "3002", "BROWSER": "none", "PATH": "/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin" }
     }
   ]
 }

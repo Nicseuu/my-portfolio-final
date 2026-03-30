@@ -4,10 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTheme } from '@/context/ThemeContext';
 import { getChatbotResponse } from '@/lib/chatbot';
+import DOMPurify from 'dompurify';
+
+// Sanitize text to prevent XSS from localStorage content
+const sanitize = (text) => (typeof text === 'string' ? DOMPurify.sanitize(text, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] }) : '');
 
 // Simple markdown to JSX renderer for chat messages
 const renderMarkdown = (text) => {
   if (!text) return text;
+  text = sanitize(text);
   // Split by line, then process inline formatting
   const lines = text.split('\n');
   return lines.map((line, i) => {
@@ -78,8 +83,18 @@ const saveChatData = (data) => {
 
 // Send email notification when visitor messages
 const sendEmailNotification = async (visitorName, visitorEmail, message) => {
-  // Try Web3Forms first (simplest setup — just an access key)
-  const web3formsKey = localStorage.getItem('web3forms-key') || '1161ad79-7e07-4f2f-bb52-5c29cc74f945';
+  // Try server-side API first (keeps keys hidden)
+  try {
+    const res = await fetch('/api/chat-notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ visitorName, visitorEmail, message }),
+    });
+    if (res.ok) return true;
+  } catch { /* Server API unavailable, fall back to client-side */ }
+
+  // Fallback: Try Web3Forms directly (for local dev or non-Vercel deployments)
+  const web3formsKey = localStorage.getItem('web3forms-key') || process.env.REACT_APP_WEB3FORMS_KEY || '';
   if (web3formsKey) {
     try {
       await fetch('https://api.web3forms.com/submit', {
@@ -242,9 +257,22 @@ const LiveChatWidget = () => {
 
   const [isTyping, setIsTyping] = useState(false);
 
+  // Rate limit: max 10 messages per 2 minutes
+  const checkChatRateLimit = useCallback(() => {
+    const key = 'chat-msg-timestamps';
+    const now = Date.now();
+    const window = 2 * 60 * 1000;
+    const timestamps = JSON.parse(localStorage.getItem(key) || '[]').filter(ts => now - ts < window);
+    if (timestamps.length >= 10) return false;
+    timestamps.push(now);
+    localStorage.setItem(key, JSON.stringify(timestamps));
+    return true;
+  }, []);
+
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!newMessage.trim() || !conversationId) return;
+    if (!checkChatRateLimit()) return;
 
     const messageText = newMessage.trim();
     setNewMessage('');
@@ -482,7 +510,7 @@ const LiveChatWidget = () => {
                             : 'bg-[#f5f4f0] text-[#1a1c1b]'
                       }`}
                     >
-                      <p className="text-sm whitespace-pre-wrap">{msg.sender !== 'visitor' ? renderMarkdown(msg.message) : msg.message}</p>
+                      <p className="text-sm whitespace-pre-wrap">{msg.sender !== 'visitor' ? renderMarkdown(msg.message) : sanitize(msg.message)}</p>
                       <p className={`text-xs mt-1 ${
                         msg.sender === 'visitor'
                           ? isDark ? 'text-[#1a1c1b]/60' : 'text-white/60'

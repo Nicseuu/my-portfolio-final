@@ -22,6 +22,14 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Close mobile menu on Escape key
+  useEffect(() => {
+    if (!isMobileMenuOpen) return;
+    const handleEscape = (e) => { if (e.key === 'Escape') setIsMobileMenuOpen(false); };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isMobileMenuOpen]);
+
   const navLinks = [
     { name: 'About', href: '#about' },
     { name: 'Results', href: '#metrics' },
@@ -40,6 +48,14 @@ const Header = () => {
   };
 
   return (
+    <>
+    {/* Skip to content link for keyboard/screen reader users */}
+    <a
+      href="#main-content"
+      className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[60] focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#d9fb06] focus:text-[#1a1c1b] focus:font-semibold focus:text-sm"
+    >
+      Skip to content
+    </a>
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled || isMobileMenuOpen
@@ -137,12 +153,20 @@ const Header = () => {
 
       {/* Mobile Navigation — dropdown below header */}
       {isMobileMenuOpen && (
-        <div
-          className={`lg:hidden overflow-y-auto border-t ${
-            isDark ? 'bg-[#1a1c1b] border-[#3f4816]/50' : 'bg-white border-[#d4d2ca]/50'
-          }`}
-          style={{ maxHeight: 'calc(100vh - 5rem)' }}
-        >
+        <>
+          {/* Backdrop overlay */}
+          <div
+            className="lg:hidden fixed inset-0 z-40 bg-black/40"
+            onClick={() => setIsMobileMenuOpen(false)}
+            role="presentation"
+            aria-hidden="true"
+          />
+          <div
+            className={`lg:hidden relative z-50 overflow-y-auto border-t ${
+              isDark ? 'bg-[#1a1c1b] border-[#3f4816]/50' : 'bg-white border-[#d4d2ca]/50'
+            }`}
+            style={{ maxHeight: 'calc(100vh - 5rem)' }}
+          >
           <div className="container-custom flex flex-col gap-2 py-6">
             {navLinks.map((link) => (
               <button
@@ -185,8 +209,10 @@ const Header = () => {
             </div>
           </div>
         </div>
+        </>
       )}
     </header>
+    </>
   );
 };
 

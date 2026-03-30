@@ -21,6 +21,7 @@ export const personalInfo = {
     "95K+ Members Managed",
     "Web3 Expert"
   ],
+  baseRate: "1,200 USDT/month",
   availability: {
     status: "Available for Hire",
     responseTime: "Within 24 hours",

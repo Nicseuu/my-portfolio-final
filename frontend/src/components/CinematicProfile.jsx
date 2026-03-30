@@ -6,23 +6,19 @@ const CinematicProfile = ({ profileImages, className = '' }) => {
   const toLightRef = useRef(null);
   const toDarkRef = useRef(null);
   const prevThemeRef = useRef(theme);
-  const [videoError, setVideoError] = useState({ light: false, dark: false });
   const [videosReady, setVideosReady] = useState({ light: false, dark: false });
-  const [frameReady, setFrameReady] = useState(false);
-  // Default: show the matching video for current theme on load
+  const [videoError, setVideoError] = useState({ light: false, dark: false });
   const [activeVideo, setActiveVideo] = useState(isDark ? 'to-dark' : 'to-light');
 
-  // Preload videos and seek to last frame on load
+  // Preload both videos and seek to last frame on initial load
   useEffect(() => {
     const lightVideo = toLightRef.current;
     const darkVideo = toDarkRef.current;
 
-    // Seek to last frame and wait for the seeked event to confirm frame is rendered
     const seekToEnd = (video, which) => {
       const onSeeked = () => {
         video.removeEventListener('seeked', onSeeked);
         setVideosReady(prev => ({ ...prev, [which]: true }));
-        setFrameReady(true);
       };
       video.addEventListener('seeked', onSeeked);
       video.currentTime = video.duration || 1;
@@ -56,6 +52,7 @@ const CinematicProfile = ({ profileImages, className = '' }) => {
       if (lightVideo) lightVideo.removeEventListener('loadeddata', onLightMeta);
       if (darkVideo) darkVideo.removeEventListener('loadeddata', onDarkMeta);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Play cinematic transition on theme change
@@ -78,33 +75,39 @@ const CinematicProfile = ({ profileImages, className = '' }) => {
 
     video.currentTime = 0;
     setActiveVideo(direction);
-    setFrameReady(true); // Video is playing, hide fallback
 
-    video.play().catch(() => {});
+    video.play().catch(() => {
+      // Mobile may block autoplay — seek to end frame instead
+      video.currentTime = video.duration || 1;
+    });
   }, [theme, videosReady, videoError]);
 
   const handleVideoError = useCallback((dir) => {
     setVideoError(prev => ({ ...prev, [dir]: true }));
   }, []);
 
-  // Pick the right fallback image — handle both array and object formats
-  const fallbackSrc = Array.isArray(profileImages)
-    ? (profileImages[0] || '/profile.jpg')
-    : (profileImages?.dark || profileImages?.light || profileImages?.main || '/profile.jpg');
+  const bothFailed = videoError.light && videoError.dark;
+  const placeholderBg = isDark ? '#1a1c1b' : '#f5f4f0';
 
   return (
     <div className={`relative overflow-hidden ${className}`}>
-      {/* Invisible spacer to maintain container dimensions */}
-      <div style={{ width: '100%', paddingBottom: '100%' }} />
 
-      {/* Fallback image — visible until video frame is ready */}
-      {!frameReady && (
-        <img
-          src={fallbackSrc}
-          alt="Profile"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ objectPosition: 'center 15%', zIndex: 2 }}
-        />
+      {/* Profile image fallback if both videos fail */}
+      {bothFailed && (
+        <div
+          className="absolute inset-0 w-full h-full"
+          style={{ backgroundColor: placeholderBg, zIndex: 1 }}
+        >
+          {profileImages?.[0] && (
+            <img
+              src={profileImages[0]}
+              alt="Profile"
+              className="w-full h-full object-cover"
+              style={{ objectPosition: 'center 15%' }}
+              loading="lazy"
+            />
+          )}
+        </div>
       )}
 
       {/* To-Light video */}
@@ -118,7 +121,8 @@ const CinematicProfile = ({ profileImages, className = '' }) => {
         style={{
           objectPosition: 'center 15%',
           zIndex: activeVideo === 'to-light' ? 3 : 1,
-          visibility: activeVideo === 'to-light' ? 'visible' : 'hidden',
+          opacity: activeVideo === 'to-light' ? 1 : 0,
+          transition: 'opacity 0.3s ease',
         }}
         onError={() => handleVideoError('light')}
       />
@@ -134,7 +138,8 @@ const CinematicProfile = ({ profileImages, className = '' }) => {
         style={{
           objectPosition: 'center 15%',
           zIndex: activeVideo === 'to-dark' ? 3 : 1,
-          visibility: activeVideo === 'to-dark' ? 'visible' : 'hidden',
+          opacity: activeVideo === 'to-dark' ? 1 : 0,
+          transition: 'opacity 0.3s ease',
         }}
         onError={() => handleVideoError('dark')}
       />

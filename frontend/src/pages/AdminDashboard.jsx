@@ -245,7 +245,7 @@ const ContentEditor = () => {
                 ['email', 'Email'], ['phone', 'Phone'], ['location', 'Location'],
                 ['linkedin', 'LinkedIn URL'], ['telegram', 'Telegram Handle'],
                 ['telegramUrl', 'Telegram URL'], ['calendly', 'Calendly URL'],
-                ['resumeUrl', 'Resume URL'],
+                ['resumeUrl', 'Resume URL'], ['baseRate', 'Base Rate (e.g. 1,200 USDT/month)'],
               ].map(([key, label]) => (
                 <div key={key} style={key === 'subtitle' ? { gridColumn: '1 / -1' } : {}}>
                   <label style={S.labelStyle}>{label}</label>
