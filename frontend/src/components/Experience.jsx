@@ -16,7 +16,25 @@ const Experience = () => {
   const experience = useMemo(() => rawExperience || [], [rawExperience]);
   const skills = useMemo(() => rawSkills || [], [rawSkills]);
   const tools = useMemo(() => rawTools || [], [rawTools]);
-  const [animatedSkills, setAnimatedSkills] = useState(skills.map(() => 0));
+  const [animatedSkills, setAnimatedSkills] = useState([]);
+
+  // Initialize animatedSkills to 0 when skills data loads
+  useEffect(() => {
+    if (skills.length > 0) {
+      setAnimatedSkills(prev => prev.length === skills.length ? prev : skills.map(() => 0));
+    }
+  }, [skills]);
+
+  // Animate to real values when section becomes visible
+  useEffect(() => {
+    if (isVisible && skills.length > 0) {
+      // Small delay so the 0% → N% transition is visible
+      const timer = setTimeout(() => {
+        setAnimatedSkills(skills.map(s => s.level));
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isVisible, skills]);
 
   // Theme-aware colors
   const accent = isDark ? '#d9fb06' : '#4a6d00';
@@ -42,9 +60,6 @@ const Experience = () => {
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
-          setTimeout(() => {
-            setAnimatedSkills(skills.map(s => s.level));
-          }, 500);
         }
       },
       { threshold: 0.1 }
@@ -55,7 +70,7 @@ const Experience = () => {
     }
 
     return () => observer.disconnect();
-  }, [skills]);
+  }, []);
 
   return (
     <section
